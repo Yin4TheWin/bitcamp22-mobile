@@ -12,12 +12,12 @@ export default function App() {
     longitudeDelta: 0.0421,
   })
   const [markers, setMarkers] = React.useState([])
+  const [loaded, setLoaded] = React.useState(false)
 
     React.useEffect(() => {
       (async () => {
         axios.get('https://cockroachapp.herokuapp.com/')
         .then(function (response) {
-          // handle success
           let marks=[]
           response.data.forEach(element=>{
             marks.push({title:"Router at", description: element.latitude+", "+element.longitude, coord:{latitude: element.latitude, longitude: element.longitude}})
@@ -25,20 +25,20 @@ export default function App() {
           setMarkers(marks)
         })
         .catch(function (error) {
-          // handle error
           console.log("error",error);
         })
         .then(function () {
-          // always executed
           console.log(markers)
         });
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
+          setLoaded(true)
           setErrorMsg('Permission to access location was denied');
           console.log("not granted")
           return;
         }
         let location = await Location.getCurrentPositionAsync({});
+        setLoaded(true)
         console.log("granted")
         setInitialRegion({latitude: location.coords.latitude, longitude: location.coords.longitude, latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,})
@@ -47,16 +47,23 @@ export default function App() {
     }, []);
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} region={initialRegion} onRegionChangeComplete={(region)=>{setInitialRegion(region)}}>
-        {markers.map((marker, index) => (
-          <Marker
-            key={index}
-            coordinate={marker.coord}
-            title={marker.title}
-            description={marker.description}
-          />
-        ))}
-      </MapView>
+      {
+        (loaded)?
+              <MapView style={styles.map} region={initialRegion} onRegionChangeComplete={(region)=>{setInitialRegion(region)}}>
+              {markers.map((marker, index) => (
+                <Marker
+                  key={index}
+                  coordinate={marker.coord}
+                  title={marker.title}
+                  description={marker.description}
+                />
+              ))}
+            </MapView> : <View>
+              <Text style={{fontSize:20, textAlign: 'center', paddingBottom: '5%'}}>Loading...</Text>
+
+              <Text style={{}}>Made with ♥, powered by CockroachDB</Text>
+            </View>
+      }
     </View>
   );
 }
