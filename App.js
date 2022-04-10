@@ -18,10 +18,11 @@ export default function App() {
         axios.get('https://cockroachapp.herokuapp.com/')
         .then(function (response) {
           // handle success
-          console.log("success",response);
+          let marks=[]
           response.data.forEach(element=>{
-            setMarkers([...markers, {title:"router",coord:{latitude: element.latitude, longitude: element.longitude?element.longitude:element.longtitude}}])
+            marks.push({title:"Router at", description: element.latitude+", "+element.longitude, coord:{latitude: element.latitude, longitude: element.longitude}})
           })
+          setMarkers(marks)
         })
         .catch(function (error) {
           // handle error
@@ -29,6 +30,7 @@ export default function App() {
         })
         .then(function () {
           // always executed
+          console.log(markers)
         });
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
